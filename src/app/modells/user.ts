@@ -1,7 +1,7 @@
 export interface User {
-  id: number; 
+  id?: number; 
   username: string;
   email: string;
-  role: 'admin' | 'user';
-  password: string;
+  role?: 'admin' | 'user';
+  passwordHash?: string;
 }

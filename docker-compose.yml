@@ -1,7 +1,7 @@
 version: "2"
 services:
-  first-crud-db:
-    container_name: first-crud-db
+  todo-app-db:
+    container_name: todo-app-db
     image: mysql:5.7
     environment:
       MYSQL_DATABASE: "database"
@@ -13,13 +13,13 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - first-crud-db-data:/var/lib/mysql
+      - todo-app-db-data:/var/lib/mysql
     networks:
       inner:
         aliases:
-          - first-crud-db
-  first-crud:
-    container_name: first-crud
+          - todo-app-db
+  todo-app:
+    container_name: todo-app
     build:
       context: ./
       dockerfile: Dockerfile.development
@@ -28,15 +28,15 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - first-crud-db
+      - todo-app-db
     volumes:
       - "./:/usr/src/app"
       - "~/.ssh:/root/.ssh"
     networks:
       inner:
         aliases:
-          - first-crud
+          - todo-app
 networks:
   inner: {}
 volumes:
-  first-crud-db-data: {}
+  todo-app-db-data: {}

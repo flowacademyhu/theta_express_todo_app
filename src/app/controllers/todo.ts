@@ -24,7 +24,7 @@ export const create = async (req: Request,  res: Response) => { // /todos POST
     name: req.body.name,
     description: req.body.description,
     status: req.body.status,
-    authorID: -1
+    userId: -1
   };
   todos.push(todo);
   todoIndex++;

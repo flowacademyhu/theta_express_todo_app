@@ -1,54 +1,75 @@
 import { User } from "../modells/user";
 import { Request, Response } from "express";
+import * as bcrypt from 'bcrypt';
+import { database } from "../../lib/database";
 
-const users: Array<User> = [];
-let userIndex: number = 0;
 
-export const create = (req: Request, res: Response) => {
-  const user: User = {
-    id: userIndex,
-    username: req.body.username,
-    email: req.body.email,
-    role: 'user',
-    password: req.body.password
-  };
-  users.push(user);
-  userIndex++;
-  res.status(201).json(user);
+export const index = async (req: Request, res: Response) => {
+  const users: Array<User> = await database('users').select();
+  res.json(users);
+}
+
+export const show = async (req: Request, res: Response) => {
+  try {
+    const user: User = await database('users').select().where({ id: req.params.id }).first();
+    if(user) {
+      res.json(user);
+    } else {
+      res.sendStatus(404);
+    }
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+}
+
+export const create = async (req: Request, res: Response) => {
+  try {
+    const passwordHash = bcrypt.hashSync(req.body.password, 10);
+    const user: User = {
+      username: req.body.username,
+      email: req.body.email,
+      passwordHash,
+      role: 'user'
+    };
+    await database('users').insert(user);
+    res.sendStatus(201);
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
 } 
 
-export const show = (req: Request, res: Response) => {
-  for(let user of users) {
-    if(user.id === parseInt(req.params.id)) {
-      delete user.password;
-      console.log(users)
-      return res.json(user);
+export const update = async (req: Request, res: Response) => {
+  try {
+    const user: User = await database('users').select().where({id: req.params.id}).first();
+    if(user) {
+      const user: User = {
+        username: req.body.username,
+        email: req.body.email
+      };
+      await database('users').update(user).where( {id: req.params.id});
+      res.sendStatus(200);
+    } else {
+      res.sendStatus(404);
     }
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
   }
-  res.json({});
 }
 
-export const update = (req: Request, res: Response) => {
-  for(let user of users) {
-    if(user.id === parseInt(req.params.id)) {
-      user.username = req.body.username ? req.body.username : user.username;
-      user.email = req.body.email ? req.body.email : user.email;
-      return res.json(user);
+export const destroy = async (req: Request, res: Response) => {
+  try {
+    const user:User = await database('users').select().where( {id: req.params.id}).first();
+    if(user) {
+      await database('users').delete().where({id: req.params.id});
+      res.sendStatus(204);
+    } else {
+      res.sendStatus(404);
     }
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
   }
-  res.json({});
-}
-
-export const destroy = (req: Request, res: Response) => {
-  for(let i = 0; i < users.length; i++) {
-    if(users[i].id === parseInt(req.params.id)) {
-      users.slice(i, 1);
-      return res.sendStatus(204);
-    }
-  }
-  res.sendStatus(200);
-}
-
-export const index = (req: Request, res: Response) => {
-  res.json(users);
 }
